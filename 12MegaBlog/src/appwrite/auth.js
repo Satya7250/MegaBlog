@@ -24,7 +24,6 @@ export class AuthService {
                 return userAccount;
             }
         } catch (error) {
-            console.error("AuthService :: createAccount :: error", error);
             throw error;
         }
     }
@@ -32,9 +31,8 @@ export class AuthService {
     // Log in user with email & password
     async login({ email, password }) {
         try {
-            return await this.account.createEmailSession(email, password);
+            return await this.account.createEmailPasswordSession(email, password);
         } catch (error) {
-            console.error("AuthService :: login :: error", error);
             throw error;
         }
     }
@@ -45,9 +43,9 @@ export class AuthService {
             return await this.account.get();
         } catch (error) {
             console.error("AuthService :: getCurrentUser :: error", error);
-            return null;
         }
-        
+
+        return null;
     }
 
     // Logout current session
@@ -58,12 +56,6 @@ export class AuthService {
         } catch (error) {
             console.error("AuthService :: logout :: error", error);
         }
-    }
-
-    // Optional: Check if user is logged in
-    async isLoggedIn() {
-        const user = await this.getCurrentUser();
-        return !!user;
     }
 }
 
