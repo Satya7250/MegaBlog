@@ -16,7 +16,16 @@ export class Service{
 
     async createPost({title, slug, content, featuredImage, status, userId}){
         try {
-            return await this.databases.createDocument(
+            console.log('Creating post with data:', {
+                title,
+                slug,
+                content: content?.substring(0, 100) + '...',
+                featuredImage,
+                status,
+                userId,
+            });
+            
+            const result = await this.databases.createDocument(
                 conf.appwriteDatabaseId,
                 conf.appwriteCollectionId,
                 slug,
@@ -27,9 +36,13 @@ export class Service{
                     status,
                     userId,
                 }
-            )
+            );
+            
+            console.log('Post created successfully:', result);
+            return result;
         } catch (error) {
-            console.log("Appwrite serive :: createPost :: error", error);
+            console.error("Appwrite service :: createPost :: error", error);
+            throw error;
         }
     }
 
@@ -125,10 +138,50 @@ export class Service{
     }
 
     getFilePreview(fileId){
-        return this.bucket.getFilePreview(
-            conf.appwriteBucketId,
-            fileId
-        )
+        try {
+            if (!fileId) {
+                console.error('File ID is required for preview');
+                return null;
+            }
+            
+            // For free plan: Skip transformations and use direct file view
+            console.log('Using file view (no transformations) for file:', fileId);
+            const fileViewUrl = this.bucket.getFileView(
+                conf.appwriteBucketId,
+                fileId
+            );
+            console.log('Generated file view URL:', fileViewUrl);
+            return fileViewUrl;
+            
+        } catch (error) {
+            console.error('Error generating file view:', error);
+            // Fallback to manual URL construction
+            try {
+                const directUrl = `${conf.appwriteUrl}/storage/buckets/${conf.appwriteBucketId}/files/${fileId}/view?project=${conf.appwriteProjectId}`;
+                console.log('Using direct URL fallback:', directUrl);
+                return directUrl;
+            } catch (directError) {
+                console.error('Direct URL fallback failed:', directError);
+                return null;
+            }
+        }
+    }
+    
+    // Alternative method to get file view URL
+    getFileView(fileId) {
+        try {
+            if (!fileId) {
+                console.error('File ID is required for file view');
+                return null;
+            }
+            return this.bucket.getFileView(
+                conf.appwriteBucketId,
+                fileId
+            );
+        } catch (error) {
+            console.error('Error generating file view:', error);
+            return null;
+        }
     }
 }
 

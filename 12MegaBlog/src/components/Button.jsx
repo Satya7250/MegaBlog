@@ -6,10 +6,20 @@ export default function Button({
     bgColor = "bg-blue-600",
     textColor = "text-white",
     className = "",
+    disabled = false,
     ...props
 }) {
     return (
-        <button className={`px-4 py-2 rounded-lg ${bgColor} ${textColor} ${className}`} {...props}>
+        <button 
+            type={type}
+            disabled={disabled}
+            className={`px-4 py-2 rounded-lg transition-all duration-200 ${
+                disabled 
+                    ? 'bg-gray-400 text-gray-600 cursor-not-allowed' 
+                    : `${bgColor} ${textColor} hover:opacity-90`
+            } ${className}`} 
+            {...props}
+        >
             {children}
         </button>
     );

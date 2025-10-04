@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Button, Input, RTE, Select } from "..";
 import appwriteService from "../../appwrite/config";
@@ -17,35 +17,75 @@ export default function PostForm({ post }) {
 
     const navigate = useNavigate();
     const userData = useSelector((state) => state.auth.userData);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
 
     const submit = async (data) => {
-        if (post) {
-            const file = data.image[0] ? await appwriteService.uploadFile(data.image[0]) : null;
-
-            if (file) {
-                appwriteService.deleteFile(post.featuredImage);
+        setError("");
+        setLoading(true);
+        
+        try {
+            // Check if user is authenticated
+            if (!userData) {
+                throw new Error("You must be logged in to create a post");
             }
 
-            const dbPost = await appwriteService.updatePost(post.$id, {
-                ...data,
-                featuredImage: file ? file.$id : undefined,
-            });
-
-            if (dbPost) {
-                navigate(`/post/${dbPost.$id}`);
+            // Check if userData has the required $id property
+            if (!userData.$id) {
+                throw new Error("User authentication error. Please log out and log in again.");
             }
-        } else {
-            const file = await appwriteService.uploadFile(data.image[0]);
 
-            if (file) {
-                const fileId = file.$id;
-                data.featuredImage = fileId;
-                const dbPost = await appwriteService.createPost({ ...data, userId: userData.$id });
+            if (post) {
+                // Update existing post
+                const file = data.image[0] ? await appwriteService.uploadFile(data.image[0]) : null;
+
+                if (file) {
+                    appwriteService.deleteFile(post.featuredImage);
+                }
+
+                const dbPost = await appwriteService.updatePost(post.$id, {
+                    ...data,
+                    featuredImage: file ? file.$id : undefined,
+                });
 
                 if (dbPost) {
                     navigate(`/post/${dbPost.$id}`);
+                } else {
+                    throw new Error("Failed to update post");
+                }
+            } else {
+                // Create new post
+                if (!data.image || !data.image[0]) {
+                    throw new Error("Please select an image for your post");
+                }
+                
+                console.log("User data:", userData); // Debug log
+                console.log("Form data:", data); // Debug log
+                
+                const file = await appwriteService.uploadFile(data.image[0]);
+
+                if (file) {
+                    const fileId = file.$id;
+                    data.featuredImage = fileId;
+                    const dbPost = await appwriteService.createPost({ 
+                        ...data, 
+                        userId: userData.$id 
+                    });
+
+                    if (dbPost) {
+                        navigate(`/post/${dbPost.$id}`);
+                    } else {
+                        throw new Error("Failed to create post");
+                    }
+                } else {
+                    throw new Error("Failed to upload image");
                 }
             }
+        } catch (error) {
+            console.error("Submit error:", error);
+            setError(error.message || "An error occurred while saving the post");
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -100,10 +140,16 @@ export default function PostForm({ post }) {
                 />
                 {post && (
                     <div className="w-full mb-4">
+                        <div className="text-sm text-gray-600 mb-2">Current Image:</div>
                         <img
-                            src={appwriteService.getFilePreview(post.featuredImage)}
+                            src={appwriteService.getFileView(post.featuredImage) || appwriteService.getFilePreview(post.featuredImage)}
                             alt={post.title}
-                            className="rounded-lg"
+                            className="rounded-lg w-full h-auto"
+                            onError={(e) => {
+                                console.error('PostForm image failed to load:', e.target.src);
+                                e.target.style.display = 'none';
+                                e.target.parentNode.innerHTML = '<div class="bg-gray-200 h-32 flex items-center justify-center text-gray-500 rounded-lg">Current image preview unavailable</div>';
+                            }}
                         />
                     </div>
                 )}
@@ -113,8 +159,18 @@ export default function PostForm({ post }) {
                     className="mb-4"
                     {...register("status", { required: true })}
                 />
-                <Button type="submit" bgColor={post ? "bg-green-500" : undefined} className="w-full">
-                    {post ? "Update" : "Submit"}
+                {error && (
+                    <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+                        {error}
+                    </div>
+                )}
+                <Button 
+                    type="submit" 
+                    bgColor={post ? "bg-green-500" : undefined} 
+                    className="w-full"
+                    disabled={loading}
+                >
+                    {loading ? "Saving..." : (post ? "Update" : "Submit")}
                 </Button>
             </div>
         </form>
