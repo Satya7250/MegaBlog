@@ -6,7 +6,6 @@ import {login, logout} from "./store/authSlice"
 import { Footer, Header } from './components'
 import { Outlet } from 'react-router-dom'
 import SpiderWebBackground from './components/SpiderWebBackground'
-import Debug from './components/Debug'
 
 function App() {
   // Updated for platform configuration
@@ -27,12 +26,11 @@ function App() {
   
   return !loading ? (
     <div className='min-h-screen flex flex-wrap content-between bg-gray-400 relative'>
-      <Debug />
       <SpiderWebBackground />
       <div className='w-full block relative z-10'>
         <Header />
         <main>
-        TODO:  <Outlet />
+          <Outlet />
         </main>
         <Footer />
       </div>
