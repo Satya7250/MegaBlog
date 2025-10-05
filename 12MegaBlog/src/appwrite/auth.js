@@ -41,11 +41,32 @@ export class AuthService {
         }
     }
 
+    // Check if user has an active session
+    async getSession() {
+        try {
+            return await this.account.getSession('current');
+        } catch (error) {
+            // No active session - user is not logged in
+            return null;
+        }
+    }
+
     // Get current logged-in user
     async getCurrentUser() {
         try {
+            // First check if there's an active session to avoid unnecessary API calls
+            const session = await this.getSession();
+            if (!session) {
+                return null;
+            }
             return await this.account.get();
         } catch (error) {
+            // Don't log errors for unauthenticated users - this is expected
+            if (error.code === 401) {
+                // User is not logged in (guest user) - this is normal
+                return null;
+            }
+            // Log other unexpected errors
             console.error("AuthService :: getCurrentUser :: error", error);
         }
 
