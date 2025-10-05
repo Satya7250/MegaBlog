@@ -25,6 +25,11 @@ export default function PostForm({ post }) {
         setLoading(true);
         
         try {
+            // Debug: Check content size
+            const contentSize = new Blob([data.content || '']).size;
+            console.log('Content size:', contentSize, 'bytes');
+            console.log('Content length:', (data.content || '').length, 'characters');
+            
             // Check if user is authenticated
             if (!userData) {
                 throw new Error("You must be logged in to create a post");
@@ -34,18 +39,27 @@ export default function PostForm({ post }) {
             if (!userData.$id) {
                 throw new Error("User authentication error. Please log out and log in again.");
             }
+            
+            // Check for very large content (warn but don't block)
+            if (contentSize > 1000000) { // 1MB
+                console.warn('Large content detected:', contentSize, 'bytes');
+                console.log('First 500 chars:', data.content.substring(0, 500));
+            }
 
             if (post) {
                 // Update existing post
                 const file = data.image[0] ? await appwriteService.uploadFile(data.image[0]) : null;
 
                 if (file) {
-                    appwriteService.deleteFile(post.featuredImage);
+                    // Only delete old file if it exists and is not empty
+                    if (post.featuredImage && post.featuredImage.trim() !== '') {
+                        appwriteService.deleteFile(post.featuredImage);
+                    }
                 }
 
                 const dbPost = await appwriteService.updatePost(post.$id, {
                     ...data,
-                    featuredImage: file ? file.$id : undefined,
+                    featuredImage: file ? file.$id : (post.featuredImage || ""),
                 });
 
                 if (dbPost) {
@@ -55,30 +69,35 @@ export default function PostForm({ post }) {
                 }
             } else {
                 // Create new post
-                if (!data.image || !data.image[0]) {
-                    throw new Error("Please select an image for your post");
-                }
+                console.log("User data:", userData); // Debug log
+                console.log("Form data:", data); // Debug log
                 
                 console.log("User data:", userData); // Debug log
                 console.log("Form data:", data); // Debug log
                 
-                const file = await appwriteService.uploadFile(data.image[0]);
-
-                if (file) {
-                    const fileId = file.$id;
-                    data.featuredImage = fileId;
-                    const dbPost = await appwriteService.createPost({ 
-                        ...data, 
-                        userId: userData.$id 
-                    });
-
-                    if (dbPost) {
-                        navigate(`/post/${dbPost.$id}`);
+                let fileId = null;
+                
+                // Handle image upload if provided
+                if (data.image && data.image[0]) {
+                    const file = await appwriteService.uploadFile(data.image[0]);
+                    if (file) {
+                        fileId = file.$id;
                     } else {
-                        throw new Error("Failed to create post");
+                        throw new Error("Failed to upload image");
                     }
+                }
+                
+                // Create post with or without image
+                const dbPost = await appwriteService.createPost({ 
+                    ...data, 
+                    featuredImage: fileId || "", // Use empty string if no image
+                    userId: userData.$id 
+                });
+
+                if (dbPost) {
+                    navigate(`/post/${dbPost.$id}`);
                 } else {
-                    throw new Error("Failed to upload image");
+                    throw new Error("Failed to create post");
                 }
             }
         } catch (error) {
@@ -132,11 +151,11 @@ export default function PostForm({ post }) {
             </div>
             <div className="w-1/3 px-2">
                 <Input
-                    label="Featured Image :"
+                    label="Featured Image (Optional):"
                     type="file"
                     className="mb-4"
                     accept="image/png, image/jpg, image/jpeg, image/gif"
-                    {...register("image", { required: !post })}
+                    {...register("image", { required: false })}
                 />
                 {post && (
                     <div className="w-full mb-4">

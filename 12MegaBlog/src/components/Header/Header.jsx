@@ -55,7 +55,7 @@ function Header() {
           <div className='flex items-center space-x-4'>
             <Link to='/' className='flex items-center space-x-3 hover:opacity-80 transition-opacity duration-200'>
               {/* <Logo /> */}
-              <span className='text-2xl font-bold text-white hidden sm:block tracking-tight'>SBLOG</span>
+              <span className='text-2xl font-bold text-white hidden sm:block tracking-tight border-2 rounded-md p-1'>SBLOG</span>
             </Link>
           </div>
 
@@ -67,7 +67,7 @@ function Header() {
                   key={item.name}
                   onClick={() => handleNavClick(item.slug)}
                   className={`
-                    px-4 py-2 rounded-lg font-medium transition-all duration-200 text-sm uppercase tracking-wide
+                    px-4 py-2 rounded-lg font-medium transition-all duration-200 text-sm uppercase tracking-wide cursor-pointer
                     ${
                       location.pathname === item.slug
                         ? 'bg-blue-600 text-white shadow-md'
@@ -119,7 +119,7 @@ function Header() {
                   key={item.name}
                   onClick={() => handleNavClick(item.slug)}
                   className={`
-                    w-full px-4 py-3 rounded-lg font-medium text-left transition-all duration-200 text-sm uppercase tracking-wide
+                    w-full px-4 py-3 rounded-lg font-medium text-left transition-all duration-200 text-sm uppercase tracking-wide cursor-pointer
                     ${
                       location.pathname === item.slug
                         ? 'bg-blue-600 text-white border-l-4 border-blue-400'

@@ -23,7 +23,12 @@ function Signup() {
                 navigate("/")
             }
         } catch (error) {
-            setError(error.message)
+            try {
+                const { getFriendlyMessage } = await import('../utils/errorMapper');
+                setError(getFriendlyMessage(error, 'auth.signup'));
+            } catch {
+                setError(error.message);
+            }
         }
     }
 

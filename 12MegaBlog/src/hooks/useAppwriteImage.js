@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import appwriteService from '../appwrite/config';
+import { getFriendlyMessage } from '../utils/errorMapper';
 
 export const useAppwriteImage = (fileId) => {
     const [imageUrl, setImageUrl] = useState(null);
@@ -7,7 +8,7 @@ export const useAppwriteImage = (fileId) => {
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        if (!fileId) {
+        if (!fileId || fileId.trim() === '') {
             setLoading(false);
             return;
         }
@@ -48,7 +49,7 @@ export const useAppwriteImage = (fileId) => {
                 setImageUrl(url);
             } catch (err) {
                 console.error('Error loading image:', err);
-                setError(err.message);
+                setError(getFriendlyMessage(err, 'image.load'));
             } finally {
                 setLoading(false);
             }

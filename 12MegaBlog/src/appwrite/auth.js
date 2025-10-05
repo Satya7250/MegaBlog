@@ -1,5 +1,6 @@
 import conf from '../conf/conf.js';
 import { Client, Account, ID } from "appwrite";
+import { AppUserError, getFriendlyMessage } from '../utils/errorMapper.js';
 
 export class AuthService {
     client = new Client();
@@ -25,7 +26,8 @@ export class AuthService {
             }
         } catch (error) {
             console.error("AuthService :: createAccount :: error", error);
-            throw error;
+            const msg = getFriendlyMessage(error, 'auth.signup');
+            throw new AppUserError(msg, { code: error?.code, cause: error, context: 'auth.signup' });
         }
     }
 
@@ -34,7 +36,8 @@ export class AuthService {
         try {
             return await this.account.createEmailPasswordSession(email, password);
         } catch (error) {
-            throw error;
+            const msg = getFriendlyMessage(error, 'auth.login');
+            throw new AppUserError(msg, { code: error?.code, cause: error, context: 'auth.login' });
         }
     }
 

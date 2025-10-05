@@ -23,7 +23,13 @@ function Login() {
                 navigate("/")
             }
         } catch (error) {
-            setError(error.message)
+            // Show friendly message
+            try {
+                const { getFriendlyMessage } = await import('../utils/errorMapper');
+                setError(getFriendlyMessage(error, 'auth.login'));
+            } catch {
+                setError(error.message);
+            }
         }
     }
 

@@ -28,7 +28,10 @@ export default function Post() {
     const deletePost = () => {
         appwriteService.deletePost(post.$id).then((status) => {
             if (status) {
-                appwriteService.deleteFile(post.featuredImage);
+                // Only delete file if it exists and is not empty
+                if (post.featuredImage && post.featuredImage.trim() !== '') {
+                    appwriteService.deleteFile(post.featuredImage);
+                }
                 navigate("/");
             }
         });
@@ -73,24 +76,17 @@ export default function Post() {
                             </div>
                         </div>
                     ) : imageUrl ? (
-                        <div className="relative group">
+                        <div className="w-full max-w-2xl mx-auto mb-6">
                             <img
                                 src={imageUrl}
                                 alt={post.title}
-                                className="w-full h-auto max-h-[600px] min-h-[300px] object-contain bg-gray-50 rounded-xl shadow-lg transition-all duration-300 group-hover:shadow-xl"
-                                style={{
-                                    aspectRatio: 'auto',
-                                    maxWidth: '100%',
-                                    height: 'auto'
-                                }}
+                                className="w-full h-80 object-cover rounded-lg shadow-md"
                                 onError={(e) => {
                                     console.error('Image failed to load:', e.target.src);
                                     e.target.style.display = 'none';
-                                    e.target.parentNode.innerHTML = '<div class="bg-gray-100 h-80 rounded-xl flex items-center justify-center text-gray-500 shadow-lg"><div class="text-center"><div class="text-5xl mb-3">🖼️</div><div>Image not available</div></div></div>';
+                                    e.target.parentNode.innerHTML = '<div class="w-full h-80 bg-gray-100 rounded-lg flex items-center justify-center text-gray-500 shadow-md"><div class="text-center"><div class="text-5xl mb-3">🖼️</div><div>Image not available</div></div></div>';
                                 }}
                             />
-                            {/* Optional: Add a subtle overlay on hover for better UX */}
-                            <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-5 transition-opacity duration-300 rounded-xl pointer-events-none"></div>
                         </div>
                     ) : (
                         <div className="w-full h-80 bg-gray-100 rounded-xl flex items-center justify-center text-gray-500 shadow-lg">

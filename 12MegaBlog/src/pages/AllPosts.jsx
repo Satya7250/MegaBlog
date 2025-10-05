@@ -4,12 +4,29 @@ import appwriteService from "../appwrite/config";
 
 function AllPosts() {
     const [posts, setPosts] = useState([])
-    useEffect(() => {}, [])
-    appwriteService.getPosts([]).then((posts) => {
-        if (posts) {
-            setPosts(posts.documents)
-        }
-    })
+
+    useEffect(() => {
+        appwriteService.getPosts([]).then((res) => {
+            if (res) {
+                setPosts(res.documents)
+            } else {
+                setPosts([])
+            }
+        })
+    }, [])
+
+  if (posts.length === 0) {
+    return (
+      <div className='w-full py-8 mt-4 text-center'>
+        <Container>
+          <div className='p-2 w-full space-y-3'>
+            <h1 className='text-2xl font-bold text-gray-800'>No posts yet</h1>
+          </div>
+        </Container>
+      </div>
+    )
+  }
+
   return (
     <div className='w-full py-8'>
         <Container>
@@ -20,7 +37,7 @@ function AllPosts() {
                     </div>
                 ))}
             </div>
-            </Container>
+        </Container>
     </div>
   )
 }

@@ -25,6 +25,13 @@ export default function RTE({name, control, label, defaultValue =""}) {
             initialValue: defaultValue,
             height: 500,
             menubar: true,
+            // Remove content length restrictions
+            max_chars: 0, // 0 = unlimited
+            paste_data_images: true,
+            paste_preprocess: function(plugin, args) {
+                // Allow large paste operations
+                return;
+            },
             plugins: [
                 "image",
                 "advlist",
@@ -46,10 +53,16 @@ export default function RTE({name, control, label, defaultValue =""}) {
                 "help",
                 "wordcount",
                 "anchor",
+                "paste", // Add paste plugin for better large content handling
             ],
             toolbar:
-            "undo redo | blocks | image | bold italic forecolor | alignleft aligncenter bold italic forecolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent |removeformat | help",
-            content_style: "body { font-family:Helvetica,Arial,sans-serif; font-size:14px }"
+            "undo redo | blocks | image | bold italic forecolor | alignleft aligncenter bold italic forecolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent |removeformat | help | fullscreen",
+            content_style: "body { font-family:Helvetica,Arial,sans-serif; font-size:14px }",
+            // Performance settings for large content
+            browser_spellcheck: true,
+            contextmenu: false,
+            // Allow unlimited undo levels
+            custom_undo_redo_levels: 50
         }}
         onEditorChange={onChange}
         />
