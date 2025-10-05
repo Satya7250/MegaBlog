@@ -8,6 +8,7 @@ import { Outlet } from 'react-router-dom'
 import SpiderWebBackground from './components/SpiderWebBackground'
 
 function App() {
+  // Updated for platform configuration
   const [loading, setLoading] = useState(true)
   const dispatch = useDispatch()
 
