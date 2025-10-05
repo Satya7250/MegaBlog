@@ -8,12 +8,18 @@ function Home() {
     const authStatus = useSelector((state) => state.auth.status)
 
     useEffect(() => {
-        appwriteService.getPosts().then((posts) => {
-            if (posts) {
-                setPosts(posts.documents)
-            }
-        })
-    }, [])
+        // Only fetch posts if user is authenticated
+        if (authStatus) {
+            appwriteService.getPosts().then((posts) => {
+                if (posts) {
+                    setPosts(posts.documents)
+                }
+            }).catch((error) => {
+                console.error("Failed to fetch posts:", error);
+                // Handle error gracefully - posts will remain empty array
+            })
+        }
+    }, [authStatus])
   
     if (posts.length === 0) {
         return (

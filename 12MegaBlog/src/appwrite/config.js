@@ -104,7 +104,12 @@ export class Service{
 
             )
         } catch (error) {
-            console.log("Appwrite serive :: getPosts :: error", error);
+            // Silently handle auth errors for logged out users
+            if (error.code === 401 || error.code === 'user_unauthorized') {
+                // User not authenticated - return empty result
+                return { documents: [] };
+            }
+            console.log("Appwrite service :: getPosts :: error", error);
             return false
         }
     }
